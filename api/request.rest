@@ -1,0 +1,10 @@
+GET http://localhost:3001/scores
+
+###
+
+POST http://localhost:3001/scores/new
+Content-Type: application/json
+
+{
+    "score": 10
+}

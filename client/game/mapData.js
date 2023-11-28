@@ -700,3 +700,6 @@ let mapData = [
         "y": 9
     }
 ]
+function getHexData(id){
+    return mapData.find(hex => hex.id === id)
+}

@@ -1,12 +1,15 @@
 //const Phaser = require("phaser");
 
 class Hex extends Phaser.GameObjects.Image {
-    constructor(scene, id, x, y, xPos, yPos, biome) {
+    constructor(scene, id, xPos, yPos) {
         
-        super(scene, xPos, yPos, "hex_"+biome)
+        var image = "hex_"+ mapData.find(hex => hex.id === id).biome;
 
-        this.biome = biome;
+        super(scene, xPos, yPos, image)
 
+        this.id = id;
+        this.xPos = xPos
+        this.yPos = yPos
         console.log("boop");
 
         scene.add.existing(this);
@@ -17,29 +20,66 @@ class Hex extends Phaser.GameObjects.Image {
         this.on('pointerdown', () => {
             //console.log("clicked: " + x + "-" +y)
 
-            console.log("clicked: " + mapData.find(hex => hex.id === id).biome)
-
-            switch (brush) {
-                case 0:
-                    this.setTexture('hex_grassland')
-                    this.biome = "grassland";
-                    break;
-                case 1:
-                    this.setTexture('hex_desert')
-                    this.biome = "desert";
-                    break;
-                case 2:
-                    this.setTexture('hex_ocean')
-                    this.biome = "ocean";
-                    break;
+            if(mapMode) {
+                selectedTile = this.getHexData().id;
+                scene.moveSelectedTilehighlight(this.xPos, this.yPos);
+                /*
+                switch (brush) {
+                    case 0:
+                        this.getHexData().biome = "grassland";
+                        break;
+                    case 1:
+                        this.getHexData().biome = "desert";
+                        break;
+                    case 2:
+                        this.getHexData().biome = "ocean";
+                        break;
+                }*/
+            } else {
+                let cityId = cityData.length;
+                cityData.push({
+                    id: cityId,
+                    name: "nill",
+                    hex: this.getHexData().id,
+                    owner: 1,
+                    buildings: [],
+                    production: 2,
+                    food: 0,
+                    population: 1,
+                    foodSpentForPopulation: 0,
+                    currentWork: {
+                        name: "smithery",
+                        production: 0
+                    }
+                })
+                console.log("pos: " + this.xPos + "-" +this.yPos)
+    
+                var newCity = new City(this.scene, cityId, this.xPos, this.yPos);
             }
-            this.updateTileData()
+            /*
+            this.getHexData().features.push({
+                id: this.getHexData().features.length,
+                feature: "City",
+                owner: "1"
+            });*/
+            this.updateVisuals()
         })
     }
 
+    getHexData(){
+        return mapData.find(hex => hex.id === this.id)
+    }
+
+    updateVisuals(){
+        this.setTexture('hex_' + this.getHexData().biome)
+
+        //this.getHexData().features
+    }
 
     updateTileData(){
+        console.log(this.id);
         console.log(mapData.find(hex => hex.id === this.id).biome);
+        //console.log(mapData.find(hex => hex.id === this.id).biome);
         mapData.find(hex => hex.id === this.id).biome = this.biome;
     }
 }

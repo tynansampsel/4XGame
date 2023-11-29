@@ -23,7 +23,7 @@ class Hex extends Phaser.GameObjects.Image {
             if(mapMode) {
                 selectedTile = this.getHexData().id;
                 scene.moveSelectedTilehighlight(this.xPos, this.yPos);
-                /*
+                
                 switch (brush) {
                     case 0:
                         this.getHexData().biome = "grassland";
@@ -34,7 +34,7 @@ class Hex extends Phaser.GameObjects.Image {
                     case 2:
                         this.getHexData().biome = "ocean";
                         break;
-                }*/
+                }
             } else {
                 let cityId = cityData.length;
                 cityData.push({

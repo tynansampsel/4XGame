@@ -69,6 +69,8 @@ class WorldMap extends Phaser.Scene {
     }
 
     create() {
+
+        this.scale.startFullscreen();
         this.cameras.main.zoom = 1;
 
         this.hexes = this.add.group();

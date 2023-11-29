@@ -1,0 +1,8 @@
+body {
+    background: rgb(101,93,63);
+    background: linear-gradient(173deg, rgba(101,93,63,1) 0%, rgba(73,64,33,1) 48%, rgba(17,2,2,1) 100%);
+}
+
+canvas {
+    border: solid 10px rgb(85, 54, 23)
+}

@@ -9,6 +9,7 @@
   "author": "Tynan Sampsel",
   "license": "ISC",
   "dependencies": {
+    "noisejs": "^2.1.0",
     "phaser": "^3.60.0"
   }
 }

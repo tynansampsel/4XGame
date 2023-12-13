@@ -11,6 +11,6 @@ var config = {
     scene: [WorldMap, Ui]
 };
 
-
+//scene: [WorldMap, Ui]
 var game = new Phaser.Game(config);
 

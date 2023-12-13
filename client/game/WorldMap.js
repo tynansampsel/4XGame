@@ -14,7 +14,7 @@ var hexFeatures = {
     owner: ""
 }
 camera = null;
-
+camZoom = 1;
 
 var dates = [ "Spring", "Summer"]
 
@@ -30,8 +30,8 @@ class WorldMap extends Phaser.Scene {
             y: 0
         }
         this.mapSize = {
-            x: 24,
-            y: 16
+            x: 240,
+            y: 160
         }
         this.xStart = 75; //-3500 
         this.yStart = 78; //-2000 //
@@ -42,9 +42,11 @@ class WorldMap extends Phaser.Scene {
     }
 
     preload() {
+        this.load.script('noise', './noise.js');
         this.load.image('hex_grassland', 'assets/tiles/hex_grassland_small.png');
         this.load.image('hex_desert', 'assets/tiles/hex_desert_small.png');
         this.load.image('hex_ocean', 'assets/tiles/hex_ocean_small.png');
+        this.load.image('hex_black', 'assets/tiles/hex_black_small.png');
         this.load.image('test_tile', 'assets/tiles/test_tile.png');
 
         this.load.image('structure_city', 'assets/tiles/structure_city_small.png');
@@ -70,7 +72,7 @@ class WorldMap extends Phaser.Scene {
     create() {
         camera = this.cameras.main;
         //this.scale.startFullscreen();
-        this.cameras.main.zoom = 1;
+        camera.zoom = 1;
 
         var canvas = this.sys.game.canvas;
 
@@ -106,6 +108,13 @@ class WorldMap extends Phaser.Scene {
             gameData.playersFinished[1] = true;
             this.endTurn();
 
+        });
+        this.input.on('wheel', event => {
+            console.log(event.deltaY)
+
+            camZoom += -(event.deltaY / 1000);
+
+            camZoom = Phaser.Math.Clamp(camZoom, 0, 2);
         });
         
 
@@ -190,6 +199,7 @@ class WorldMap extends Phaser.Scene {
 
         if(pointer.y > camera.height - 100) return;
 
+        camera.zoom = camZoom;
 
         const cameraSpeed = 4;
         const edgeThreshold = 100;
@@ -250,31 +260,48 @@ class WorldMap extends Phaser.Scene {
         // dateText.setText(getDate()+', '+getYear()+'AD');
     }
 
-    randomBiome() {
-        var r = Math.round(Math.random() * 3);
-        switch (r) {
-            case 0:
-                return "grassland"
-            case 1:
-                return "grassland"
-            case 2:
-                return "desert"
-            case 3:
-                return "ocean"
+    randomBiome(x, y, noise) {
+        const zoom = 10
+        let v = noise.perlin2(x/zoom, y/zoom);
+        v = (v + 1) / 2;
+
+        let oceanlevel = 0.55;
+        let grasslevel = 0.6;
+
+        if (v < oceanlevel){
+            return "ocean"
+        } else if (v >= oceanlevel && v <= grasslevel){
+            return "desert"
+        } else if (v > grasslevel){
+            return "grassland"
+        } else{
+            return "black"
         }
+
+        // var r = Math.round(Math.random() * 3);
+        // switch (r) {
+        //     case 0:
+        //         return "grassland"
+        //     case 1:
+        //         return "grassland"
+        //     case 2:
+        //         return "desert"
+        //     case 3:
+        //         return "ocean"
+        // }
     }
 
     
 
     createRandomMap() {
         mapData = [];
-    
+        const noise = new Noise();
         for (var y = 0; y < this.mapSize.y; y++) {
             for (var x = 0; x < this.mapSize.x; x++) {
                 mapData.push(
                     {
                         id: (x+"-"+y),
-                        biome: this.randomBiome(),
+                        biome: this.randomBiome(x, y, noise),
                         features: [],
                         x: x,
                         y: y

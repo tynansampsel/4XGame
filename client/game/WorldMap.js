@@ -1,11 +1,11 @@
 var brushObject;
 var mapMode = true;
 
-var selectedCity;
+
 var selectedTile = -1;
 var selectedId;
 var selectedTileHighlight;
-
+var cursorIsOnCanvas = true;
 brush = 0;
 
 var hexFeatures = {
@@ -13,9 +13,8 @@ var hexFeatures = {
     feature: "",
     owner: ""
 }
+camera = null;
 
-var turnText;
-var dateText;
 
 var dates = [ "Spring", "Summer"]
 
@@ -31,11 +30,11 @@ class WorldMap extends Phaser.Scene {
             y: 0
         }
         this.mapSize = {
-            x: 12,
-            y: 8
+            x: 24,
+            y: 16
         }
-        this.xStart = 75; //-3500
-        this.yStart = 78; //-2000
+        this.xStart = 75; //-3500 
+        this.yStart = 78; //-2000 //
     }
 
     init() {
@@ -52,14 +51,14 @@ class WorldMap extends Phaser.Scene {
         this.load.image('structure_mine', 'assets/tiles/structure_mine_small.png');
         this.load.image('structure_farm', 'assets/tiles/structure_farm_small.png');
         
-        this.load.image('ui_tool', 'assets/tiles/ui_tool.png');
-        this.load.image('ui_bottom_bar', 'assets/ui/ui_bottom_bar.png');
-        this.load.image('ui_top_bar', 'assets/ui/ui_top_bar.png');
-        this.load.image('button_arrow', 'assets/ui/button_arrow.png');
+        // this.load.image('ui_tool', 'assets/tiles/ui_tool.png');
+        // this.load.image('ui_bottom_bar', 'assets/ui/ui_bottom_bar.png');
+        // this.load.image('ui_top_bar', 'assets/ui/ui_top_bar.png');
+        // this.load.image('button_arrow', 'assets/ui/button_arrow.png');
 
-        this.load.image('icon_settlers', 'assets/ui/icon_settlers.png');
-        this.load.image('icon_farm', 'assets/ui/icon_farm.png');
-        this.load.image('icon_mine', 'assets/ui/icon_mine.png');
+        // this.load.image('icon_settlers', 'assets/ui/icon_settlers.png');
+        // this.load.image('icon_farm', 'assets/ui/icon_farm.png');
+        // this.load.image('icon_mine', 'assets/ui/icon_mine.png');
 
         this.load.image('cursor_default', 'assets/ui/cursor_default.png');
 
@@ -69,9 +68,22 @@ class WorldMap extends Phaser.Scene {
     }
 
     create() {
-
+        camera = this.cameras.main;
         //this.scale.startFullscreen();
         this.cameras.main.zoom = 1;
+
+        var canvas = this.sys.game.canvas;
+
+        // set up canvas event listeners
+        canvas.addEventListener('mouseenter', function () {
+            cursorIsOnCanvas = true;
+            console.log("in")
+        });
+    
+        canvas.addEventListener('mouseleave', function () {
+            cursorIsOnCanvas = false;
+            console.log("out")
+        });
 
         this.hexes = this.add.group();
         this.cities = this.add.group();
@@ -81,16 +93,7 @@ class WorldMap extends Phaser.Scene {
         this.createRandomMap();
         //this.add.image(20  + this.offset.x, 20, 'hex_' + "ocean").setInteractive();
 
-        this.input.keyboard.on('keydown-E', event => {
-            console.log("E");
-            brush++;
-            if (brush > 2) brush = 0;
-        });
-
-        this.input.keyboard.on('keydown-Q', event => {
-            console.log("switched mode");
-            mapMode = !mapMode;
-        });
+        
 
         this.input.keyboard.on('keydown-P', event => {
             console.log("player 2 done");
@@ -125,28 +128,47 @@ class WorldMap extends Phaser.Scene {
         this.placeRandomCity(1);
 
         //this.add.image(700, 500,"ui_tool");
-        this.add.image(400, 551,"ui_bottom_bar");
-        this.add.image(400, 10,"ui_top_bar");
+        //this.add.image(400, 551,"ui_bottom_bar");
+        //this.add.image(400, 10,"ui_top_bar");
 
-        var nextTurnButton = this.add.image(700, 551,"button_arrow").setInteractive();
+        // var nextTurnButton = this.add.image(700, 551,"button_arrow").setInteractive();
 
-        nextTurnButton.on('pointerdown', () => {
-            gameData.playersFinished[0] = true;
-            gameData.playersFinished[1] = true;
-            this.endTurn();
-        })
+        // nextTurnButton.on('pointerdown', () => {
+        //     gameData.playersFinished[0] = true;
+        //     gameData.playersFinished[1] = true;
+        //     this.endTurn();
+        // })
 
-        brushObject = this.add.image(85, 551,"hex_grassland");
+        //brushObject = this.add.image(85, 551,"hex_grassland");
         selectedTileHighlight = this.add.image(85, 551,"hex_highlight");
         
         //console.log(getYear());
         console.log(getDate());
 
-        turnText = this.add.text(10, 450, 'Turn: '+gameData.currentTurn, { fontSize: '16px', fill: '#FFF', strokeThickness: 0.5, align: "right" });
-        dateText = this.add.text(10, 475, getDate()+', '+getYear()+'AD', { fontSize: '16px', fill: '#FFF', strokeThickness: 0.5, align: "right" });
+        
+
+        this.input.on('pointermove', function (pointer) {
+            
+        });
+
+        this.input.keyboard.on('keydown-D', event => {
+            camera.scrollX += 5;
+            console.log("cam");
+
+        });
     }
 
     update() {
+        if(selectedTile != -1){
+            //camera.setPosition(50, 50);
+            //camera.startFollow(selectedTileHighlight);
+        }
+        this.updateCamera()
+
+        if(event_nextTurn){
+            event_nextTurn = false;
+            this.endTurn();
+        }
 
         if(selectedTile != -1){
             var hex = getHexData(selectedTile);
@@ -159,20 +181,36 @@ class WorldMap extends Phaser.Scene {
             }
         }
 
-        if(mapMode){
-            switch (brush) {
-                case 0:
-                    brushObject.setTexture('hex_grassland')
-                    break;
-                case 1:
-                    brushObject.setTexture('hex_desert')
-                    break;
-                case 2:
-                    brushObject.setTexture('hex_ocean')
-                    break;
-            }
-        } else {
-            brushObject.setTexture('structure_city')
+        
+    }
+
+    updateCamera(){
+        if(!cursorIsOnCanvas) return;
+        const pointer = this.input.activePointer;
+
+        if(pointer.y > camera.height - 100) return;
+
+
+        const cameraSpeed = 4;
+        const edgeThreshold = 100;
+        // Check if the mouse is near the edges
+        const nearTop = pointer.y < (edgeThreshold+25) && pointer.y > 25;
+        const nearBottom = pointer.y > camera.height - (edgeThreshold+ 100 ) && pointer.y < camera.height - 100;
+        const nearLeft = pointer.x < edgeThreshold;
+        const nearRight = pointer.x > camera.width - edgeThreshold;
+    
+        // Adjust the camera position based on the mouse position and edges
+        if (nearTop) {
+            camera.scrollY -= cameraSpeed;
+        }
+        if (nearBottom) {
+            camera.scrollY += cameraSpeed;
+        }
+        if (nearLeft) {
+            camera.scrollX -= cameraSpeed;
+        }
+        if (nearRight) {
+            camera.scrollX += cameraSpeed;
         }
     }
 
@@ -208,8 +246,8 @@ class WorldMap extends Phaser.Scene {
             console.log("player not done");
         }
 
-        turnText.setText('Turn: '+gameData.currentTurn);
-        dateText.setText(getDate()+', '+getYear()+'AD');
+        // turnText.setText('Turn: '+gameData.currentTurn);
+        // dateText.setText(getDate()+', '+getYear()+'AD');
     }
 
     randomBiome() {
@@ -265,7 +303,7 @@ class WorldMap extends Phaser.Scene {
             population: 1,
             foodSpentForPopulation: 0,
             currentWork: {
-                name: "smithery",
+                name: "",
                 production: 0
             }
         })

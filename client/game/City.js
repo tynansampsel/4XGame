@@ -33,6 +33,8 @@ class City extends Phaser.GameObjects.Image {
         super(scene, xPos, yPos, image)
 
         this.id = id;
+        this.xPos = xPos;
+        this.yPos = yPos;
 
         console.log(this.getCityData());
 
@@ -50,6 +52,11 @@ class City extends Phaser.GameObjects.Image {
 
         this.on('pointerdown', () => {
             console.log("clicked: " + this.getCityData().name)
+            selectedCity = this.getCityData().id
+            console.log(selectedCity)
+            scene.moveSelectedTilehighlight(this.xPos, this.yPos);
+
+
         })
 
         var range = scene.add.image(xPos, yPos,"city_range_1");
@@ -58,12 +65,15 @@ class City extends Phaser.GameObjects.Image {
 
     }
 
+    //this is called after every turn.
     endOfTurnUpdate(){
         this.updateProduction();
+
+        //this checks for a current work
         if(this.getCityData().currentWork.name != "") 
             this.doConstruction();
 
-            this.doPopulationGrowth();
+        this.doPopulationGrowth();
         
         console.log(this.getCityData());
     }
@@ -88,10 +98,13 @@ class City extends Phaser.GameObjects.Image {
 
     updateProduction(){
         if(this.getCityData().buildings.length > 0){
+            console.log("p")
+
             this.getCityData().production = 2 + this.getCityData().buildings.reduce((acc, buildingName) => {
                 return acc + getBuildingData(buildingName).production
             },0);
         } else {
+            console.log("e")
             this.getCityData().production = 2
         }
 

@@ -10,7 +10,7 @@ class Hex extends Phaser.GameObjects.Image {
         this.id = id;
         this.xPos = xPos
         this.yPos = yPos
-        console.log("boop");
+        //console.log("boop");
 
         scene.add.existing(this);
         scene.hexes.add(this);
@@ -20,6 +20,10 @@ class Hex extends Phaser.GameObjects.Image {
         this.on('pointerdown', () => {
             //console.log("clicked: " + x + "-" +y)
 
+            selectedTile = this.getHexData().id;
+            //selectedCity = this.getCityData(selectedTile).name;
+
+            console.log(selectedCity)
             if(mapMode) {
                 selectedTile = this.getHexData().id;
                 scene.moveSelectedTilehighlight(this.xPos, this.yPos);
@@ -68,6 +72,10 @@ class Hex extends Phaser.GameObjects.Image {
 
     getHexData(){
         return mapData.find(hex => hex.id === this.id)
+    }
+
+    getCityData(hexId){
+        return cityData.find(city => city.id === hexId)
     }
 
     updateVisuals(){

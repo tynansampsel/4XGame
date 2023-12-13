@@ -8,7 +8,7 @@ var config = {
     },
     width: 800,
     height: 600,
-    scene: [WorldMap]
+    scene: [WorldMap, Ui]
 };
 
 

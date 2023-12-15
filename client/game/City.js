@@ -44,25 +44,28 @@ class City extends Phaser.GameObjects.Image {
         this.setInteractive({
             cursor: 'url(assets/ui/cursor_select.png), pointer'
         });
+        this.on('pointerover', function (pointer) {
+            scene.moveSelectedTilehighlight(this.xPos, this.yPos);
+        });
 
 
         var r = Math.round(Math.random() * cityNames.length);
-
         this.getCityData().name = cityNames[r];
 
+
+
+        
         this.on('pointerdown', () => {
-            console.log("clicked: " + this.getCityData().name)
-            selectedCity = this.getCityData().id
-            console.log(selectedCity)
-            scene.moveSelectedTilehighlight(this.xPos, this.yPos);
-
-
+            if(cursorMode === "none") {
+                console.log("clicked: " + this.getCityData().name)
+                selectedCity = this.getCityData().id
+                console.log(selectedCity)
+                scene.moveSelectedTilehighlight(this.xPos, this.yPos);
+            }
         })
 
         var range = scene.add.image(xPos, yPos,"city_range_1");
         scene.add.existing(range);
-
-
     }
 
     //this is called after every turn.

@@ -1,0 +1,51 @@
+{
+  "compressionlevel": -1,
+  "height": 9,
+  "hexsidelength": 32,
+  "infinite": false,
+  "layers": [
+    {
+      "data": [
+        0, 0, 1, 1, 
+        1, 1, 1, 0
+      ],
+      "height": 9,
+      "id": 1,
+      "name": "tileMap2",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 4,
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "nextlayerid": 2,
+  "nextobjectid": 1,
+  "orientation": "hexagonal",
+  "renderorder": "right-down",
+  "staggeraxis": "y",
+  "staggerindex": "odd",
+  "tiledversion": "1.4.2",
+  "tileheight": 65,
+  "tilesets": [
+    {
+      "columns": 10,
+      "firstgid": 1,
+      "image": "assets/tiles/tileset_test.png",
+      "imageheight": 65,
+      "imagewidth": 640,
+      "margin": 0,
+      "name": "tileset",
+      "spacing": 0,
+      "tilecount": 10,
+      "tileheight": 65,
+      "tilewidth": 64,
+      "transparentcolor": "#ffffff"
+    }
+  ],
+  "tilewidth": 64,
+  "type": "map",
+  "version": 1.4,
+  "width": 14
+}

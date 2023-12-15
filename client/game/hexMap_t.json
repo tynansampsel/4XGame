@@ -1,0 +1,36 @@
+{
+  "compressionlevel": -1,
+  "height": 80,
+  "width": 120,
+  "hexsidelength": 32,
+  "infinite": false,
+  "layers": [
+  ],
+  "nextlayerid": 2,
+  "nextobjectid": 1,
+  "orientation": "hexagonal",
+  "renderorder": "right-down",
+  "staggeraxis": "y",
+  "staggerindex": "odd",
+  "tiledversion": "1.4.2",
+  "tileheight": 65,
+  "tilesets": [
+    {
+      "columns": 10,
+      "firstgid": 1,
+      "image": "assets/tiles/tileset_world_base.png",
+      "imageheight": 65,
+      "imagewidth": 640,
+      "margin": 0,
+      "name": "tileset",
+      "spacing": 0,
+      "tilecount": 10,
+      "tileheight": 65,
+      "tilewidth": 64,
+      "transparentcolor": "#ffffff"
+    }
+  ],
+  "tilewidth": 64,
+  "type": "map",
+  "version": 1.4
+}

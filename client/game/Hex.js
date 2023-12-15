@@ -17,14 +17,17 @@ class Hex extends Phaser.GameObjects.Image {
 
         this.setInteractive();
 
+        this.on('pointerover', function (pointer) {
+            selectedTile = this.getHexData().id;
+            scene.moveSelectedTilehighlight(this.xPos, this.yPos);
+        });
+
         this.on('pointerdown', () => {
             //console.log("clicked: " + x + "-" +y)
 
             selectedTile = this.getHexData().id;
-            //selectedCity = this.getCityData(selectedTile).name;
-
-            console.log(selectedCity)
-            if(mapMode) {
+            
+            if(cursorMode === "brush") {
                 selectedTile = this.getHexData().id;
                 scene.moveSelectedTilehighlight(this.xPos, this.yPos);
                 
@@ -39,7 +42,8 @@ class Hex extends Phaser.GameObjects.Image {
                         this.getHexData().biome = "ocean";
                         break;
                 }
-            } else {
+            } else if(cursorMode === "buildcity") {
+                if(buildModeStructure != "city") return
                 let cityId = cityData.length;
                 cityData.push({
                     id: cityId,
@@ -59,6 +63,32 @@ class Hex extends Phaser.GameObjects.Image {
                 console.log("pos: " + this.xPos + "-" +this.yPos)
     
                 var newCity = new City(this.scene, cityId, this.xPos, this.yPos);
+
+            } else if(cursorMode === "build") {
+                if(buildModeStructure == "farm"){
+                    console.log("buildFarm")
+                    cursorMode = "none";
+
+                    // let cityId = cityData.length;
+                    // cityData.push({
+                    //     id: cityId,
+                    //     name: "nill",
+                    //     hex: this.getHexData().id,
+                    //     owner: 1,
+                    //     buildings: [],
+                    //     production: 2,
+                    //     food: 0,
+                    //     population: 1,
+                    //     foodSpentForPopulation: 0,
+                    //     currentWork: {
+                    //         name: "smithery",
+                    //         production: 0
+                    //     }
+                    // })
+                console.log("pos: " + this.xPos + "-" +this.yPos)
+    
+                var newFarm = new Structure(this.scene, 0, this.xPos, this.yPos, "farm");
+                }
             }
             /*
             this.getHexData().features.push({

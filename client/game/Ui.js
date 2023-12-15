@@ -45,12 +45,14 @@ class Ui extends Phaser.Scene {
         this.add.image(400, 10,"ui_top_bar");
 
         this.input.keyboard.on('keydown-E', event => {
+            if(cursorMode != "brush") return
             console.log("E");
             brush++;
             if (brush > 2) brush = 0;
         });
 
         this.input.keyboard.on('keydown-Q', event => {
+            if(cursorMode != "brush") return
             console.log("switched mode");
             mapMode = !mapMode;
         });
@@ -88,6 +90,12 @@ class Ui extends Phaser.Scene {
 
         })
 
+        var farmStructureButton = this.add.image(300, 575,"icon_farm").setInteractive();
+        farmStructureButton.on('pointerdown', () => {
+            if(cursorMode != "none") return
+            cursorMode = "build"
+            buildModeStructure = "farm"
+        })
 
 
     }

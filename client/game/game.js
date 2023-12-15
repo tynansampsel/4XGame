@@ -8,7 +8,8 @@ var config = {
     },
     width: 800,
     height: 600,
-    scene: [WorldMap, Ui]
+    backgroundColor: '#392711',
+    scene: [HexTileMap]//[WorldMap, Ui]
 };
 
 //scene: [WorldMap, Ui]

@@ -1,322 +1,284 @@
-var brushObject;
-var mapMode = true;
-
-var cursorMode = "none";
-//none - this means the player can select a new mode
-//build - this means the player will build a structure on the next selected tile if possible
-//move - not implemented yet, but will be for moving units
-//brush - this means the player can alter the terrain.
-
-var buildModeStructure = "";
-let hexArr = [];
-
-var selectedTile = -1;
-var selectedId;
-var selectedTileHighlight;
-
-brush = 0;
+let tilemapArr = {};
+let camera = null;
+let camZoom = 1;
+let cameraSpanSpeed = 25;
+let cursorIsOnCanvas = true;
+let scrollY = 0;
+let scrollX = 0;
 let seed = 11;
-var hexFeatures = {
-    id: "",
-    feature: "",
-    owner: ""
-}
-// camera = null;
-// camZoom = 1;
-// cameraSpanSpeed = 1;
-// var cursorIsOnCanvas = true;
 
-var dates = [ "Spring", "Summer"]
+let cursorVariables = {
+    currentSelectedTile: "0-0",
+    currentSelectedCity: "-1",
+    currentHoveringTile: "0-0",
+    selectedTileHighlight: null
+}
+
+var cityNames = [
+    "Berlin",
+    "York",
+    "Paris",
+    "Rome",
+    "Venice",
+    "Vatican",
+    "New York",
+    "Jerusalem",
+    "Corinth",
+    "Athens",
+    "Dublin",
+    "Moscow",
+    "Frankfurt",
+    "Hamburg",
+    "Troy",
+    "Tyre",
+    "Babylon",
+    "Stockholm",
+    "Glasglow",
+    "Madrid",
+    "Constantinople",
+    "London",
+] 
 
 class WorldMap extends Phaser.Scene {
-    #scaleRate = 1;
 
-
-
-    constructor() {
-        super("worldMap")
-        this.offset = {
-            x: 0,
-            y: 0
-        }
-        this.mapSize = {
-            x: 120, //12
-            y: 80 //8
-        }
-        this.xStart = 75; //-3500 
-        this.yStart = 78; //-2000 //
-    }
-
-    init() {
-
-    }
-
-    preload() {
-        this.load.script('noise', './noise.js');
-        this.load.image('hex_grassland', 'assets/tiles/hex_grassland_small.png');
-        this.load.image('hex_desert', 'assets/tiles/hex_desert_small.png');
-        this.load.image('hex_ocean', 'assets/tiles/hex_ocean_small.png');
-
-        this.load.image('hex_shore', 'assets/tiles/hex_shore_small.png');
-        this.load.image('hex_deepocean', 'assets/tiles/hex_deepocean_small.png');
-
-        this.load.image('hex_black', 'assets/tiles/hex_black_small.png');
-        this.load.image('test_tile', 'assets/tiles/test_tile.png');
-
-        this.load.image('structure_city', 'assets/tiles/structure_city_small.png');
-        this.load.image('structure_mine', 'assets/tiles/structure_mine_small.png');
-        this.load.image('structure_farm', 'assets/tiles/structure_farm_small.png');
-        
-        // this.load.image('ui_tool', 'assets/tiles/ui_tool.png');
-        // this.load.image('ui_bottom_bar', 'assets/ui/ui_bottom_bar.png');
-        // this.load.image('ui_top_bar', 'assets/ui/ui_top_bar.png');
-        // this.load.image('button_arrow', 'assets/ui/button_arrow.png');
-
-        // this.load.image('icon_settlers', 'assets/ui/icon_settlers.png');
-        // this.load.image('icon_farm', 'assets/ui/icon_farm.png');
-        // this.load.image('icon_mine', 'assets/ui/icon_mine.png');
-
-        this.load.image('cursor_default', 'assets/ui/cursor_default.png');
-
-        this.load.image('city_range_1', 'assets/tiles/city_range_1.png');
-        this.load.image('hex_highlight', 'assets/ui/hexhighlight.png');
-
-    }
-
-    create() {
-        camera = this.cameras.main;
-        //this.scale.startFullscreen();
-        camera.zoom = 1;
-        var canvas = this.sys.game.canvas;
-
-        // set up canvas event listeners
-        canvas.addEventListener('mouseenter', function () {
-            cursorIsOnCanvas = true;
-            console.log("in")
-        });
     
-        canvas.addEventListener('mouseleave', function () {
-            cursorIsOnCanvas = false;
-            console.log("out")
-        });
+	constructor() {
+		super({ key: "WorldMap" })
+	}
 
-        this.hexes = this.add.group();
-        this.cities = this.add.group();
+    
+
+	preload() {
+		this.load.image('tileset_world_base', 'assets/tilesets/tileset_world_base.png');
+		this.load.image('tileset_world_structure', 'assets/tilesets/tileset_world_structure.png');
+		this.load.tilemapTiledJSON('hexMap', 'json/tilemap.json');
+	
+        this.load.image('hex_highlight', 'assets/highlight/hexhighlight.png');
+    }
+
+	create() {
+		camera = this.cameras.main;
+		camera.setSize(800, 600);
+		camera.zoom = 1;
+		let canvas = this.sys.game.canvas;
         
-        this.input.setDefaultCursor('url(assets/ui/cursor_default.png), pointer');
-        
-        this.createRandomMap();
-        //this.add.image(20  + this.offset.x, 20, 'hex_' + "ocean").setInteractive();
+        // const cursors = this.input.keyboard.createCursorKeys();
 
-        
+        // const controlConfig = {
+        //     camera: this.cameras.main,
+        //     left: cursors.left,
+        //     right: cursors.right,
+        //     up: cursors.up,
+        //     down: cursors.down,
+        //     zoomIn: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q),
+        //     zoomOut: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
+        //     acceleration: 0.06,
+        //     drag: 0.0005,
+        //     maxSpeed: 0.25
+        // };
 
-        this.input.keyboard.on('keydown-P', event => {
-            console.log("player 2 done");
-            gameData.playersFinished[0] = true;
-            this.endTurn();
+        // this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl(controlConfig);
 
-        });
-        this.input.keyboard.on('keydown-O', event => {
-            console.log("player 2 done");
-            gameData.playersFinished[1] = true;
-            this.endTurn();
+        // ================================================================
+        // ====== Map Setup ===========================================
 
-        });
-        this.input.on('wheel', event => {
-            camZoom += -((event.deltaY / 1000));
-            camZoom = Phaser.Math.Clamp(camZoom, 0.2, 1.5);
-        });
-        
+		const map = this.add.tilemap('hexMap');
+		const tileset_world_base = map.addTilesetImage('tileset_world_base', 'tileset_world_base');
+		const tileset_world_structure = map.addTilesetImage('tileset_world_structure', 'tileset_world_structure');
+		//map.createLayer('tileMap2', tileset);
+		const layer_world_base = map.createBlankLayer('world_base', tileset_world_base, 0, 0, 240, 160, 64, 68);
+		const layer_world_structure = map.createBlankLayer('world_structure', tileset_world_base, 0, 0, 240, 160, 64, 68);
+		
+        cursorVariables.selectedTileHighlight = this.add.image(85, 551,"hex_highlight");
 
-        this.keys = this.input.keyboard.addKeys('Q,E');
+		this.fixLayer(layer_world_base, map);
+		this.fixLayer(layer_world_structure, map);
 
-        mapData.forEach(hex => {
-            var isOdd = hex.y % 2;
-            var newXPosition = this.xStart + 56 * hex.x + (isOdd === 1 ? 28 : 0) + this.offset.x;
-            var newYPosition = this.yStart + 48 * hex.y;
-            var image = 'hex_' + hex.biome;
+		layer_world_base.fill(1, 0, 0, 240, 160)
+		layer_world_structure.fill(0, 0, 0, 240, 160)
 
-            var newHex = new Hex(this, hex.id, newXPosition, newYPosition);
-            hexArr.push(newHex);
+		this.createRandomMap( map, layer_world_base)
+		layer_world_base.setCullPadding(80, 40);
+		layer_world_structure.setCullPadding(80, 40);
 
-            //this.placeTile(hex.x, hex.y, this.xStart + 56 * hex.x, this.yStart + 48 * hex.y, hex.y % 2, hex.biome, this)
-            //placeTile(xStart + 58 * hex.x, yStart + 50 * hex.y, hex.y % 2, hex.biome, this)
-        })
+        // ================================================================
+        // ====== Post Map Setup ===========================================
 
-        this.placeRandomCity(1);
+        camera.setBounds(-50, -50, map.widthInPixels+50, map.heightInPixels+50);
 
-        //this.add.image(700, 500,"ui_tool");
-        //this.add.image(400, 551,"ui_bottom_bar");
-        //this.add.image(400, 10,"ui_top_bar");
+        // ================================================================
+        // ====== Test Controls ===========================================
 
-        // var nextTurnButton = this.add.image(700, 551,"button_arrow").setInteractive();
+		this.input.keyboard.on('keydown-P', event => {
+			console.log("map resize");
+			const newMapData = {
+				width: map.width,
+				height: map.height,
+				layers: [
+					{
+						data: map.layers[0].data, // Use the existing tile data
+						height: 9,
+						width: 5,
+					},
+				],
+			};
+			map.setBaseTilemap(newMapData);
 
-        // nextTurnButton.on('pointerdown', () => {
-        //     gameData.playersFinished[0] = true;
-        //     gameData.playersFinished[1] = true;
-        //     this.endTurn();
-        // })
+			// Resize the layer
+			layer.resize(newMapData.width, newMapData.height);
+		});
 
-        //brushObject = this.add.image(85, 551,"hex_grassland");
-        selectedTileHighlight = this.add.image(85, 551,"hex_highlight");
-        
-        //console.log(getYear());
-        console.log(getDate());
+        // ================================================================
+        // ====== Mouse Controls ==========================================
 
-        
+		canvas.addEventListener('mouseenter', function () {
+			cursorIsOnCanvas = true;
+			//console.log("in")
+		});
+
+		canvas.addEventListener('mouseleave', function () {
+			cursorIsOnCanvas = false;
+			//console.log("out")
+		});
+
+		this.input.on('wheel', event => {
+			camZoom += -((event.deltaY / 1000));
+			camZoom = Phaser.Math.Clamp(camZoom, 0.2, 1.5);
+		});
+
+        // ================================================================
+        // ====== Map Controls ============================================
+
+        this.placeCity(1, 1, 1, map, layer_world_structure);
+        map.putTileAt(7, 1, 1, false, layer_world_structure);
+
+        this.placeCity(1, 2, 1, map, layer_world_structure);
+        map.putTileAt(7, 2, 1, false, layer_world_structure);
+
+		this.input.on('pointerup', function (pointer) {
+			// Calculate the tile coordinates based on the pointer's world position
+			//console.log('World Coordinates:', pointer.worldX, pointer.worldY);
+
+			const tileXY = map.worldToTileXY(pointer.worldX, pointer.worldY);
+            //const tile = layer_world_structure.getTileAt(pointer.worldX, pointer.worldY)
+			console.log(tileXY);
+            console.log('PWC', pointer.worldX, pointer.worldY);
+            console.log(tileXY)
+            const cityTile = cityData.findIndex(city => city.hex === `${tileXY.x}-${tileXY.y}`)
+            const hexTile = mapData.findIndex(hex => hex.id === `${tileXY.x}-${tileXY.y}`)
+			console.log(cityTile);
+
+            if(cityTile > -1){
+                console.log(cityData[cityTile]);
+                cursorVariables.currentSelectedCity = cityTile
+                console.log(`currently selected tile is ${cursorVariables.currentSelectedCity}`);
+
+            } else if(hexTile > -1){
+                console.log("b");
+
+                this.placeCity(1, tileXY.x, tileXY.y, map, layer_world_structure);
+                map.putTileAt(7, tileXY.x, tileXY.y, false, layer_world_structure);
+            } else {
+                console.log("no data found.");
+            }
+
+			//console.log(tileXY.x, tileXY.y);
+            
+
+            console.log(cityData);
+		}, this);
+
+
 
         this.input.on('pointermove', function (pointer) {
-            
-        });
+			const tileXY = map.worldToTileXY(pointer.worldX, pointer.worldY);
+            const worldXY = this.staggeredTileToWorldXY(tileXY.x, tileXY.y, map.tileWidth, map.tileHeight);
 
-        this.input.keyboard.on('keydown-D', event => {
-            camera.scrollX += 5;
-            console.log("cam");
+            this.moveSelectedTilehighlight(worldXY.x, worldXY.y);
+        }, this);
 
-        });
+        // highlight = this.add.graphics();
+
+        // drawTileHighlight(1, 1);
+	}
+
+    staggeredTileToWorldXY(tileX, tileY, tileWidth, tileHeight) {
+        const offsetX = tileY % 2 === 1 ? tileWidth / 2 : 0;
+        const worldX = tileX * tileWidth + offsetX + (tileWidth/2);
+        const worldY = tileY * (tileHeight * 3 / 4) + (tileHeight/2);
+        return new Phaser.Math.Vector2(worldX, worldY);
     }
+	update(delta) {
+        //this.controls.update(delta);
+		this.updateCamera()
+	}
 
-    update() {
-        if(selectedTile != -1){
-            //camera.setPosition(50, 50);
-            //camera.startFollow(selectedTileHighlight);
-        }
-        this.updateCamera()
+    placeCity(playerId, x, y, map, layer){
+        var r = Math.round(Math.random() * cityNames.length);
+        console.log(r)
+        console.log(cityNames[r])
+        let rname = cityNames[r]
+        let cityId = cityData.length;
 
-        // hexArr.forEach(child => {
-        //     child.setAlpha(1); // Make all tiles visible initially
-        // });
-    
-        // Call cull on the entire group
-        this.hexes.setVisible(false)
-
-        //this.cameras.main.worldView.contains(X, Y)
-
-        hexArr.forEach(tile => {
-            if (this.cameras.main.worldView.contains(tile.x, tile.y)) {
-                tile.setVisible(true); // Show only the tiles in view
+        cityData.push({
+            id: cityId,
+            name: rname,
+            hex: `${x}-${y}`,
+            owner: playerId,
+            buildings: [],
+            production: 2,
+            food: 0,
+            population: 1,
+            foodSpentForPopulation: 0,
+            currentWork: {
+                name: "",
+                production: 0
             }
-        });
-
-        // hexArr.forEach(tile => {
-        //     tile.setAlpha(0); // Hide all tiles
-    
-        //     if (this.camera.worldView.contains(tile.x, tile.y)) {
-        //         tile.setAlpha(1); // Show only the tiles in view
-        //     }
-        // }, this);
-
-        if(event_nextTurn){
-            event_nextTurn = false;
-            this.endTurn();
-        }
-
-        if(selectedTile != -1){
-            var hex = getHexData(selectedTile);
-
-            switch (hex.biome) {
-                case 0:
-                    break;
-                case 1:
-                    break;
-            }
-        }
-
-        
-    }
-
-    updateCamera(){
-        if(!cursorIsOnCanvas) return;
-        const pointer = this.input.activePointer;
-
-        if(pointer.y > camera.height - 100) return;
-
-        camera.zoom = camZoom;
-
-        const cameraSpeed = 6 - camZoom;
-        const edgeThreshold = 100;
-        // Check if the mouse is near the edges
-        const nearTop = pointer.y < (edgeThreshold+25) && pointer.y > 25;
-        const nearBottom = pointer.y > camera.height - (edgeThreshold+ 100 ) && pointer.y < camera.height - 100;
-        const nearLeft = pointer.x < edgeThreshold;
-        const nearRight = pointer.x > camera.width - edgeThreshold;
-    
-        // Adjust the camera position based on the mouse position and edges
-        if (nearTop) {
-            camera.scrollY -= cameraSpeed;
-        }
-        if (nearBottom) {
-            camera.scrollY += cameraSpeed;
-        }
-        if (nearLeft) {
-            camera.scrollX -= cameraSpeed;
-        }
-        if (nearRight) {
-            camera.scrollX += cameraSpeed;
-        }
+        })
     }
 
     moveSelectedTilehighlight(x, y) {
-        selectedTileHighlight.setPosition(x, y);
+
+
+        cursorVariables.selectedTileHighlight.setPosition(x, y);
     }
 
-    updateUiCenterBoard(){
+    // ================================================================
+    // ====== MAP GENERATION ==========================================
+    // ================================================================
 
-    }
+	fixLayer(layer, map){
+		layer.layer.hexSideLength = map.hexSideLength;
+		layer.layer.wdith = map.wdith;
+		layer.layer.height = map.height;
+		for (const t of layer.getTilesWithin()) {
+			t.updatePixelXY();
+		}
+	}
 
-    endTurn(){
-        var arr = gameData.playersFinished.find((player) => !player);
-        //console.log(gameData.playersFinished);
-
-        if(arr == undefined){
-            console.log("next turn");
-
-            gameData.currentTurn++;
-
-
-
-            this.cities.children.each(city => {
-                city.endOfTurnUpdate();
-            }, this)
-
-
-            gameData.playersFinished.forEach((value, index, arr) => {
-                arr[index] = false;
-            });
-        //console.log(gameData);
-        } else {
-            console.log("player not done");
-        }
-
-        // turnText.setText('Turn: '+gameData.currentTurn);
-        // dateText.setText(getDate()+', '+getYear()+'AD');
-    }
-
-
-    createRandomMap() {
+	createRandomMap(map, layer) {
         mapData = [];
         const noise = new Noise(seed);
-        for (var y = 0; y < this.mapSize.y; y++) {
-            for (var x = 0; x < this.mapSize.x; x++) {
+        for (var y = 0; y < 160; y++) {
+            for (var x = 0; x < 240; x++) {
+				let d = this.getBiome(x, y, noise)
                 mapData.push(
                     {
                         id: (x+"-"+y),
-                        biome: this.getBiome(x, y, noise),
+                        biome: d,
                         features: [],
                         x: x,
                         y: y
                     }
                 )
+				//console.log(`x:${x}  y:${y}`)
+				map.putTileAt(d, x, y, true, layer);
             }
         }
         console.log(mapData);
     }
 
-    //returns the hex biome.
-    getBiome(x, y, noise) {
-        // let v = this.getOctave(x, y, 10, 1, noise)
-        // v += this.getOctave(x, y, 10, 0.5, noise)
-        // v += this.getOctave(x, y, 10, 0.5, noise)
+	getBiome(x, y, noise) {
         let zoom = 50;
         let v = this.getOctaves(x, y, zoom, 1, 3, noise)
 
@@ -325,13 +287,13 @@ class WorldMap extends Phaser.Scene {
         let grasslevel = 0.6;
 
         if (v < deepoceanlevel){
-            return "deepocean"
+            return 3//"deepocean"
         } else if (v >= deepoceanlevel && v < oceanlevel){
-            return "ocean"
+            return 4//"ocean"
         } else if (v >= oceanlevel && v <= grasslevel){
-            return "shore"
+            return 5//"shore"
         } else if (v > grasslevel){
-            return "grassland"
+            return 1//"grassland"
         } else{
             console.log("tile failed to load. if this message appears, something went wrong with the map generation.")
             return "black"
@@ -359,85 +321,47 @@ class WorldMap extends Phaser.Scene {
         return v;
     }
 
-    getOctave(x, y, zoom, falloff, noise){
-        let v = noise.perlin2(x/zoom, y/zoom);
-        v = (v + 1) / 2;
+    // ================================================================
+    // ====== UPDATE BLOCKS ===========================================
+    // ================================================================
 
-        v = v / falloff;
+	updateCamera() {
+		if (!cursorIsOnCanvas) return;
+		const pointer = this.input.activePointer;
 
-        return v;
-    }
+		if (pointer.y > camera.height - 100) return;
 
-
-    randomBiome(x, y, noise) {
-        // var r = Math.round(Math.random() * 3);
-        // switch (r) {
-        //     case 0:
-        //         return "grassland"
-        //     case 1:
-        //         return "grassland"
-        //     case 2:
-        //         return "desert"
-        //     case 3:
-        //         return "ocean"
-        // }
-    }
-
-    
-
-    placeStructure(playerId, hexId){
-        let cityId = cityData.length;
-        cityData.push({
-            id: cityId,
-            name: "nill",
-            hex: mapData[r].id,
-            owner: playerId,
-            buildings: [],
-            production: 2,
-            food: 0,
-            population: 1,
-            foodSpentForPopulation: 0,
-            currentWork: {
-                name: "",
-                production: 0
-            }
-        })
-
-        var newCity = new City(this, cityId, this.getPositionFromIdX(mapData[r].x, mapData[r].y), this.getPositionFromIdY(mapData[r].y));
-    }
+		camera.zoom = camZoom;
 
 
-    placeRandomCity(playerId){
-        var r = Math.round(Math.random() * mapData.length);
+		const cameraSpeed = cameraSpanSpeed - camZoom;
+		const edgeThreshold = 100;
+		// Check if the mouse is near the edges
+		const nearTop = pointer.y < (edgeThreshold + 25) && pointer.y > 25;
+		const nearBottom = pointer.y > camera.height - (edgeThreshold + 100) && pointer.y < camera.height - 100;
+		const nearLeft = pointer.x < edgeThreshold;
+		const nearRight = pointer.x > camera.width - edgeThreshold;
 
-        let cityId = cityData.length;
-        cityData.push({
-            id: cityId,
-            name: "nill",
-            hex: mapData[r].id,
-            owner: playerId,
-            buildings: [],
-            production: 2,
-            food: 0,
-            population: 1,
-            foodSpentForPopulation: 0,
-            currentWork: {
-                name: "",
-                production: 0
-            }
-        })
-
-        var newCity = new City(this, cityId, this.getPositionFromIdX(mapData[r].x, mapData[r].y), this.getPositionFromIdY(mapData[r].y));
-    }
+        let scrollX = camera.scrollX;
+        let scrollY = camera.scrollY;
+		// Adjust the camera position based on the mouse position and edges
+		if (nearTop) {
+			scrollY -= cameraSpeed;
+		}
+		if (nearBottom) {
+			scrollY += cameraSpeed;
+		}
+		if (nearLeft) {
+			scrollX -= cameraSpeed;
+		}
+		if (nearRight) {
+			scrollX += cameraSpeed;
+		}
 
 
+        camera.setScroll(scrollX, scrollY);
+		//camera.setScroll(scrollX, scrollY);
+	}
 
-    getPositionFromIdX(x, y){
-        var isOdd = y % 2;
-        return this.xStart + 56 * x + (isOdd === 1 ? 28 : 0) + this.offset.x;
-    }
 
-    getPositionFromIdY(y){
-        return this.yStart + 48 * y;
-    }
 }

@@ -13,8 +13,9 @@ class HexTileMap extends Phaser.Scene {
 	}
 
 	preload() {
-		this.load.image('hex', 'assets/tilesets/tileset_world_base.png');
-		this.load.tilemapTiledJSON('hexMap', 'game/hexMap_t.json');
+		this.load.image('tileset_world_base', 'assets/tilesets/tileset_world_base.png');
+		this.load.image('tileset_world_structure', 'assets/tilesets/tileset_world_structure.png');
+		this.load.tilemapTiledJSON('hexMap', 'json/tilemap.json');
 	}
 
 	create() {
@@ -24,23 +25,26 @@ class HexTileMap extends Phaser.Scene {
 		let canvas = this.sys.game.canvas;
 
 		const map = this.add.tilemap('hexMap');
-		const tileset = map.addTilesetImage('tileset', 'hex');
+		const tileset_world_base = map.addTilesetImage('tileset_world_base', 'tileset_world_base');
+		const tileset_world_structure = map.addTilesetImage('tileset_world_structure', 'tileset_world_structure');
 		//map.createLayer('tileMap2', tileset);
-		const l = map.createBlankLayer('tileMap2', tileset, 0, 0, 120, 80, 64, 65);
+		const layer_world_base = map.createBlankLayer('world_base', tileset_world_base, 0, 0, 240, 160, 64, 65);
+		const layer_world_structure = map.createBlankLayer('world_structure', tileset_world_base, 0, 0, 240, 160, 64, 65);
 		
-		l.layer.hexSideLength = map.hexSideLength;
-		l.layer.wdith = map.wdith;
-		l.layer.height = map.height;
-		for (const t of l.getTilesWithin()) {
-			t.updatePixelXY();
-		}
-		
-		map.fill(1, 0, 0, 120, 80)
-		this.createRandomMap(map)
+
+		this.fixLayer(layer_world_base, map);
+		this.fixLayer(layer_world_structure, map);
+
+		layer_world_base.fill(1, 0, 0, 240, 160)
+		layer_world_structure.fill(0, 0, 0, 240, 160)
+
+		this.createRandomMap( map, layer_world_base)
+		//this.createRandomMap(map)
 		//camera.setBounds(-50, -50, map.widthInPixels+50, map.heightInPixels+50);
 		//camera.setZoom(1);
 		//camera.setScroll(0, 0);
-		l.setCullPadding(30, 20);
+		layer_world_base.setCullPadding(60, 40);
+		layer_world_structure.setCullPadding(60, 40);
 
 		// Set up the pointerdown event
 		// this.input.on('pointerup', function (pointer) {
@@ -94,14 +98,23 @@ class HexTileMap extends Phaser.Scene {
 			console.log(tile.x, tile.y);
 
 			// Put a tile at the calculated coordinates (assuming tileId is the tile you want to place)
-			map.putTileAt(3, tile.x, tile.y);
+			map.putTileAt(7, tile.x, tile.y, false, layer_world_structure);
 
+			//layer_world_base.putTileAt(3, 0, 0);
 		}, this);
+	}
+
+	fixLayer(layer, map){
+		layer.layer.hexSideLength = map.hexSideLength;
+		layer.layer.wdith = map.wdith;
+		layer.layer.height = map.height;
+		for (const t of layer.getTilesWithin()) {
+			t.updatePixelXY();
+		}
 	}
 
 	update() {
 		this.updateCamera()
-        
 	}
 
 	updateCamera() {
@@ -139,16 +152,15 @@ class HexTileMap extends Phaser.Scene {
 		//camera.setScroll(scrollX, scrollY);
 	}
 
-	createRandomMap(map) {
+	createRandomMap(map, layer) {
         mapData = [];
         const noise = new Noise(seed);
-        for (var y = 0; y < 80; y++) {
-            for (var x = 0; x < 120; x++) {
+        for (var y = 0; y < 160; y++) {
+            for (var x = 0; x < 240; x++) {
 
 				let d = this.getBiome(x, y, noise)
-				map.putTileAt(d, x, y);
-
-
+				//console.log(`x:${x}  y:${y}`)
+				map.putTileAt(d, x, y, true, layer);
             }
         }
         console.log(mapData);

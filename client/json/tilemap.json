@@ -1,8 +1,8 @@
 {
   "compressionlevel": -1,
-  "height": 80,
-  "width": 120,
-  "hexsidelength": 32,
+  "height": 160,
+  "width": 240,
+  "hexsidelength": 34,
   "infinite": false,
   "layers": [
   ],
@@ -13,19 +13,19 @@
   "staggeraxis": "y",
   "staggerindex": "odd",
   "tiledversion": "1.4.2",
-  "tileheight": 65,
+  "tileheight": 68,
   "tilesets": [
     {
       "columns": 10,
       "firstgid": 1,
-      "image": "assets/tiles/tileset_world_base.png",
-      "imageheight": 65,
+      "image": "assets/tilesets/tileset_world_base.png",
+      "imageheight": 68,
       "imagewidth": 640,
       "margin": 0,
-      "name": "tileset",
+      "name": "tileset_world_base",
       "spacing": 0,
       "tilecount": 10,
-      "tileheight": 65,
+      "tileheight": 68,
       "tilewidth": 64,
       "transparentcolor": "#ffffff"
     }

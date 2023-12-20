@@ -1,3 +1,12 @@
+var brushObject;
+brush = 0;
+var mapMode = true;
+
+var cursorMode = "none";
+//none - this means the player can select a new mode
+//build - this means the player will build a structure on the next selected tile if possible
+//move - not implemented yet, but will be for moving units
+//brush - this means the player can alter the terrain.
 
 var turnText;
 var dateText;
@@ -6,8 +15,6 @@ var cityUiBoxName;
 var cityInfoCurrentFoodProduction;
 var cityInfoCurrentWorkProduction;
 var cityInfoPopulation;
-
-var selectedCity = -1;
 
 class Ui extends Phaser.Scene {
     constructor() {
@@ -124,10 +131,10 @@ class Ui extends Phaser.Scene {
     }
 
     getCityName(){
-        if(selectedCity < 0){
+        if(cursorVariables.currentSelectedCity < 0){
             return "none"
         } else {
-            return this.getCityData(selectedCity).name
+            return this.getCityData(cursorVariables.currentSelectedCity).name
         }
     }
 
@@ -137,16 +144,16 @@ class Ui extends Phaser.Scene {
 
     
     getCityDataNoId(){
-        if(selectedCity < 0){
+        if(cursorVariables.currentSelectedCity < 0){
             return "none"
         } else {
-            return this.getCityData(selectedCity)
+            return this.getCityData(cursorVariables.currentSelectedCity)
         }
     }
 
 
     setCityConstruction(structureId){
-        this.getCityData(selectedCity).currentWork = {
+        this.getCityData(cursorVariables.currentSelectedCity).currentWork = {
             name : S_buildingData[structureId].name,
             production : 0
         }

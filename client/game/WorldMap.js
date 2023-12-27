@@ -1,43 +1,13 @@
 let tilemapArr = {};
-let camera = null;
-let camZoom = 1;
-let cameraSpanSpeed = 25;
-let cursorIsOnCanvas = true;
-let scrollY = 0;
-let scrollX = 0;
+
 let seed = 11;
+// a few interesting seeds
+/*
+    11 : base world
+    12 : 2 continents
 
-let cursorVariables = {
-    currentSelectedTile: "0-0",
-    currentSelectedCity: "-1",
-    currentHoveringTile: "0-0",
-    selectedTileHighlight: null
-}
 
-var cityNames = [
-    "Berlin",
-    "York",
-    "Paris",
-    "Rome",
-    "Venice",
-    "Vatican",
-    "New York",
-    "Jerusalem",
-    "Corinth",
-    "Athens",
-    "Dublin",
-    "Moscow",
-    "Frankfurt",
-    "Hamburg",
-    "Troy",
-    "Tyre",
-    "Babylon",
-    "Stockholm",
-    "Glasglow",
-    "Madrid",
-    "Constantinople",
-    "London",
-] 
+*/
 
 class WorldMap extends Phaser.Scene {
 
@@ -57,9 +27,9 @@ class WorldMap extends Phaser.Scene {
     }
 
 	create() {
-		camera = this.cameras.main;
-		camera.setSize(800, 600);
-		camera.zoom = 1;
+		cameraVariables.camera = this.cameras.main;
+		cameraVariables.camera.setSize(800, 600);
+		cameraVariables.camera.zoom = 1;
 		let canvas = this.sys.game.canvas;
         
         // const cursors = this.input.keyboard.createCursorKeys();
@@ -103,8 +73,10 @@ class WorldMap extends Phaser.Scene {
 
         // ================================================================
         // ====== Post Map Setup ===========================================
-
-        camera.setBounds(-50, -50, map.widthInPixels+50, map.heightInPixels+50);
+        
+        let w = map.widthInPixels;
+        let h = map.heightInPixels;
+        cameraVariables.camera.setBounds(-100, -100, w + 200, h - 2000);
 
         // ================================================================
         // ====== Test Controls ===========================================
@@ -132,18 +104,18 @@ class WorldMap extends Phaser.Scene {
         // ====== Mouse Controls ==========================================
 
 		canvas.addEventListener('mouseenter', function () {
-			cursorIsOnCanvas = true;
+			cameraVariables.cursorIsOnCanvas = true;
 			//console.log("in")
 		});
 
 		canvas.addEventListener('mouseleave', function () {
-			cursorIsOnCanvas = false;
+			cameraVariables.cursorIsOnCanvas = false;
 			//console.log("out")
 		});
 
 		this.input.on('wheel', event => {
-			camZoom += -((event.deltaY / 1000));
-			camZoom = Phaser.Math.Clamp(camZoom, 0.2, 1.5);
+			cameraVariables.camZoom += -((event.deltaY / 1000));
+			cameraVariables.camZoom = Phaser.Math.Clamp(cameraVariables.camZoom, 0.2, 1.5);
 		});
 
         // ================================================================
@@ -156,36 +128,26 @@ class WorldMap extends Phaser.Scene {
         map.putTileAt(7, 2, 1, false, layer_world_structure);
 
 		this.input.on('pointerup', function (pointer) {
-			// Calculate the tile coordinates based on the pointer's world position
-			//console.log('World Coordinates:', pointer.worldX, pointer.worldY);
-
 			const tileXY = map.worldToTileXY(pointer.worldX, pointer.worldY);
             //const tile = layer_world_structure.getTileAt(pointer.worldX, pointer.worldY)
-			console.log(tileXY);
-            console.log('PWC', pointer.worldX, pointer.worldY);
-            console.log(tileXY)
+
             const cityTile = cityData.findIndex(city => city.hex === `${tileXY.x}-${tileXY.y}`)
             const hexTile = mapData.findIndex(hex => hex.id === `${tileXY.x}-${tileXY.y}`)
-			console.log(cityTile);
 
             if(cityTile > -1){
                 console.log(cityData[cityTile]);
                 cursorVariables.currentSelectedCity = cityTile
-                console.log(`currently selected tile is ${cursorVariables.currentSelectedCity}`);
+                //console.log(`currently selected tile is ${cursorVariables.currentSelectedCity}`);
 
             } else if(hexTile > -1){
-                console.log("b");
+                console.log("clicked a non-city tile.");
 
+                cursorVariables.currentSelectedCity = -1;
                 this.placeCity(1, tileXY.x, tileXY.y, map, layer_world_structure);
                 map.putTileAt(7, tileXY.x, tileXY.y, false, layer_world_structure);
             } else {
                 console.log("no data found.");
             }
-
-			//console.log(tileXY.x, tileXY.y);
-            
-
-            console.log(cityData);
 		}, this);
 
 
@@ -196,10 +158,6 @@ class WorldMap extends Phaser.Scene {
 
             this.moveSelectedTilehighlight(worldXY.x, worldXY.y);
         }, this);
-
-        // highlight = this.add.graphics();
-
-        // drawTileHighlight(1, 1);
 	}
 
     staggeredTileToWorldXY(tileX, tileY, tileWidth, tileHeight) {
@@ -215,8 +173,8 @@ class WorldMap extends Phaser.Scene {
 
     placeCity(playerId, x, y, map, layer){
         var r = Math.round(Math.random() * cityNames.length);
-        console.log(r)
-        console.log(cityNames[r])
+        //console.log(r)
+        //console.log(cityNames[r])
         let rname = cityNames[r]
         let cityId = cityData.length;
 
@@ -227,7 +185,7 @@ class WorldMap extends Phaser.Scene {
             owner: playerId,
             buildings: [],
             production: 2,
-            food: 0,
+            food: 2,
             population: 1,
             foodSpentForPopulation: 0,
             currentWork: {
@@ -238,8 +196,6 @@ class WorldMap extends Phaser.Scene {
     }
 
     moveSelectedTilehighlight(x, y) {
-
-
         cursorVariables.selectedTileHighlight.setPosition(x, y);
     }
 
@@ -275,7 +231,7 @@ class WorldMap extends Phaser.Scene {
 				map.putTileAt(d, x, y, true, layer);
             }
         }
-        console.log(mapData);
+        //console.log(mapData);
     }
 
 	getBiome(x, y, noise) {
@@ -326,24 +282,24 @@ class WorldMap extends Phaser.Scene {
     // ================================================================
 
 	updateCamera() {
-		if (!cursorIsOnCanvas) return;
+		if (!cameraVariables.cursorIsOnCanvas) return;
 		const pointer = this.input.activePointer;
 
-		if (pointer.y > camera.height - 100) return;
+		if (pointer.y > cameraVariables.camera.height - 100) return;
 
-		camera.zoom = camZoom;
+		cameraVariables.camera.zoom = cameraVariables.camZoom;
 
 
-		const cameraSpeed = cameraSpanSpeed - camZoom;
+		const cameraSpeed = cameraVariables.cameraSpanSpeed - cameraVariables.camZoom;
 		const edgeThreshold = 100;
 		// Check if the mouse is near the edges
 		const nearTop = pointer.y < (edgeThreshold + 25) && pointer.y > 25;
-		const nearBottom = pointer.y > camera.height - (edgeThreshold + 100) && pointer.y < camera.height - 100;
+		const nearBottom = pointer.y > cameraVariables.camera.height - (edgeThreshold + 100) && pointer.y < cameraVariables.camera.height - 100;
 		const nearLeft = pointer.x < edgeThreshold;
-		const nearRight = pointer.x > camera.width - edgeThreshold;
+		const nearRight = pointer.x > cameraVariables.camera.width - edgeThreshold;
 
-        let scrollX = camera.scrollX;
-        let scrollY = camera.scrollY;
+        let scrollX = cameraVariables.camera.scrollX;
+        let scrollY = cameraVariables.camera.scrollY;
 		// Adjust the camera position based on the mouse position and edges
 		if (nearTop) {
 			scrollY -= cameraSpeed;
@@ -357,11 +313,7 @@ class WorldMap extends Phaser.Scene {
 		if (nearRight) {
 			scrollX += cameraSpeed;
 		}
-
-
-        camera.setScroll(scrollX, scrollY);
+        cameraVariables.camera.setScroll(scrollX, scrollY);
 		//camera.setScroll(scrollX, scrollY);
 	}
-
-
 }

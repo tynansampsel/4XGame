@@ -20,21 +20,30 @@
     
     <div class="bottomBar">unnamed 4x game</div> -->
     
-    <!-- <script type="text/javascript" src="game/HexTileMap.js"></script> -->
-    <script type="text/javascript" src="game/noise.js"></script>
-    <script type="text/javascript" src="game/NoiseTest.js"></script>
-    <!-- <script type="text/javascript" src="game/globalVariables.js"></script> -->
-    <script type="text/javascript" src="game/Events.js"></script>
+    <!-- Global variables.  -->
+    <script type="text/javascript" src="game/globalVariables.js"></script>
+
+    <!-- Static data. this should not change during gameplay.  -->
     <script type="text/javascript" src="game/S_buildingData.js"></script>
+    <script type="text/javascript" src="game/S_improvementData.js"></script>
+    
+    <!-- Utility functions.  -->
+    <script type="text/javascript" src="game/CityFunctions.js"></script>
+    <script type="text/javascript" src="game/Events.js"></script>
+
+    <!-- Misc.  -->
+    <script type="text/javascript" src="game/noise.js"></script>
+
+    <!-- runtime data.  -->
     <script type="text/javascript" src="game/mapData.js"></script>
     <script type="text/javascript" src="game/gameData.js"></script>
     <script type="text/javascript" src="game/cityData.js"></script>
-    <script type="text/javascript" src="game/City.js"></script>
-    <script type="text/javascript" src="game/Structure.js"></script>
-    <script type="text/javascript" src="game/Hex.js"></script>
 
+    <!-- Phaser3 classes.  -->
     <script type="text/javascript" src="game/WorldMap.js"></script>
     <script type="text/javascript" src="game/Ui.js"></script>
+
+    <!-- Phaser3 game class.  -->
     <script type="text/javascript" index="game" src="game/game.js"></script>
 </body>
 </html>

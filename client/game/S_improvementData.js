@@ -1,4 +1,4 @@
-let S_improvementData = [
+const S_improvementData = [
     {
         name: "farm",
         available: ["grassland"],

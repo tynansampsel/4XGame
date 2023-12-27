@@ -16,6 +16,10 @@ let uiRefs = {
     farmStructureButton: null,
 }
 
+let panels = {
+    cityInfo: null
+}
+
 //var cursorMode = "none";
 //none - this means the player can select a new mode
 //build - this means the player will build a structure on the next selected tile if possible

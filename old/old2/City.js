@@ -1,5 +1,4 @@
 //const Phaser = require("phaser");
-
 var cityNames = [
     "Berlin",
     "York",
@@ -23,8 +22,7 @@ var cityNames = [
     "Madrid",
     "Constantinople",
     "London",
-] 
-
+]
 class City extends Phaser.GameObjects.Image {
     constructor(scene, id, xPos, yPos) {
         

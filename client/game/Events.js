@@ -5,4 +5,4 @@ function nextTurn() {
 
 // Example usag
 
-let event_nextTurn;
+//let event_nextTurn;

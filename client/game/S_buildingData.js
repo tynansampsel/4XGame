@@ -1,4 +1,4 @@
-let S_buildingData = [
+const S_buildingData = [
     {
         name: "smithery",
         productionCost: 20,
